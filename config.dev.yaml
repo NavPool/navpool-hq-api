@@ -1,0 +1,30 @@
+debug: true
+
+server:
+  port: 8085
+
+Networks:
+  - name: mainnet
+    host: navcoind.navexplorer.com
+    port: 8332
+    username: user
+    password: password
+
+  - name: testnet
+    host: testnet.navexplorer.com
+    port: 8332
+    username: user
+    password: password
+
+jwt:
+  realm: NavPool HQ
+  secret: ThisIsNotASecret
+
+db:
+  dialect: postgres
+  host: localhost
+  port: 8432
+  username: navpool
+  password: navpool
+  dbname: navpool
+  sslMode: disable

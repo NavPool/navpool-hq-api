@@ -1,0 +1,7 @@
+version: "2"
+
+services:
+  navpool_db:
+    build: ./docker
+    ports:
+     - "8432:5432"
