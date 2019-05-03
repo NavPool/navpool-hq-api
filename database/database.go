@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"github.com/NavPool/navpool-hq-api/config"
 	"github.com/jinzhu/gorm"
@@ -8,7 +9,11 @@ import (
 	"log"
 )
 
-func NewConnection() (db *gorm.DB) {
+var (
+	ErrorDatabaseConnection = errors.New("Failed to connect to the database")
+)
+
+func NewConnection() (db *gorm.DB, err error) {
 	args := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s",
 		config.Get().DB.Host,
 		config.Get().DB.Port,
@@ -17,9 +22,14 @@ func NewConnection() (db *gorm.DB) {
 		config.Get().DB.Password,
 		config.Get().DB.SSLMode)
 
-	db, err := gorm.Open(config.Get().DB.Dialect, args)
+	db, err = gorm.Open(config.Get().DB.Dialect, args)
 	if err != nil {
-		log.Panic("Failed to connect database: ", err, args)
+		log.Print("Failed to connect database: ", err, args)
+		err = ErrorDatabaseConnection
+	}
+
+	if config.Get().Debug == true {
+		db.LogMode(config.Get().DB.LogMode)
 	}
 
 	return
