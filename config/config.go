@@ -29,26 +29,18 @@ type Config struct {
 		Password string
 		DbName   string
 		SSLMode  string
+		LogMode  bool
 	}
 
-	ElasticSearch struct {
-		Urls        string
-		Sniff       bool
-		HealthCheck bool
+	Explorer struct {
+		Url string
 	}
 
-	Networks []Network
+	Pool struct {
+		Url string
+	}
 
 	SelectedNetwork string
-}
-
-type Network struct {
-	Name string
-
-	Host     string
-	Port     int
-	Username string
-	Password string
 }
 
 var instance *Config
