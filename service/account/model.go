@@ -1,7 +1,7 @@
 package account
 
 import (
-	"github.com/NavExplorer/navexplorer-api-go/service/address"
+	"github.com/NavPool/navpool-hq-api/service/address/model"
 	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
 	"time"
@@ -14,16 +14,16 @@ type Login struct {
 }
 
 type User struct {
-	ID          uuid.UUID         `gorm:"type:uuid;primary_key;" json:"id"`
-	Username    string            `gorm:"unique;not null" json:"username,omitempty"`
-	Password    string            `json:"-"`
-	Active      bool              `json:"active,omitempty"`
-	LastLoginAt *time.Time        `json:"lastlogin_at,omitempty"`
-	DeletedAt   *time.Time        `sql:"index" json:"deleted_at,omitempty"`
-	CreatedAt   *time.Time        `json:"created_at,omitempty"`
-	UpdatedAt   *time.Time        `json:"update_at,omitempty"`
-	Addresses   []address.Address `json:"addresses,omitempty"`
-	TwoFactor   *TwoFactor        `json:"two_factor,omitempty"`
+	ID          uuid.UUID       `gorm:"type:uuid;primary_key;" json:"id"`
+	Username    string          `gorm:"unique;not null" json:"username,omitempty"`
+	Password    string          `json:"-"`
+	Active      bool            `json:"active,omitempty"`
+	LastLoginAt *time.Time      `json:"lastlogin_at,omitempty"`
+	DeletedAt   *time.Time      `sql:"index" json:"deleted_at,omitempty"`
+	CreatedAt   *time.Time      `json:"created_at,omitempty"`
+	UpdatedAt   *time.Time      `json:"update_at,omitempty"`
+	Addresses   []model.Address `json:"addresses,omitempty"`
+	TwoFactor   *TwoFactor      `json:"two_factor,omitempty"`
 }
 
 func (u *User) TwoFactorExists() bool {

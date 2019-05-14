@@ -29,7 +29,7 @@ func (c *PoolClient) call(url string, method string, data interface{}) (response
 	if data != nil {
 		body = bytes.NewBufferString(data.(string))
 	} else {
-		body = nil
+		body = bytes.NewBufferString("")
 	}
 
 	req, err := http.NewRequest(method, c.host+url, body)
