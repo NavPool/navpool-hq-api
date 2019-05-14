@@ -43,8 +43,10 @@ func main() {
 		log.Fatal("JWT Error:" + err.Error())
 	}
 
+	authController := new(auth.Controller)
 	authGroup := r.Group("/auth")
 	authGroup.POST("/login", authMiddleware.LoginHandler)
+	authGroup.POST("/register", authController.Register)
 	authGroup.GET("/refresh_token", authMiddleware.RefreshHandler)
 
 	apiGroup := r.Group("/")
@@ -81,9 +83,9 @@ func dbFixtures() {
 
 	db.AutoMigrate(&account.User{}, &account.TwoFactor{}, model.Address{}, model2.Vote{})
 
-	if config.Get().Debug == true {
-		_ = account.CreateUser("admin", "admin")
-		_ = account.CreateUser("deleted", "deleted")
-		_ = account.DeleteUser("deleted", true)
+	if config.Get().Fixtures == true {
+		account.CreateUser("admin", "admin")
+		account.CreateUser("deleted", "deleted")
+		account.DeleteUser("deleted", true)
 	}
 }

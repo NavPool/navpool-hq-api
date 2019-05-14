@@ -13,6 +13,12 @@ type Login struct {
 	TwoFactor string `form:"twoFactor" json:"twoFactor"`
 }
 
+type Register struct {
+	Username        string `form:"username" json:"username" binding:"required"`
+	Password        string `form:"password" json:"password" binding:"required"`
+	PasswordConfirm string `form:"passwordConfirm" json:"passwordConfirm" binding:"required"`
+}
+
 type User struct {
 	ID          uuid.UUID       `gorm:"type:uuid;primary_key;" json:"id"`
 	Username    string          `gorm:"unique;not null" json:"username,omitempty"`

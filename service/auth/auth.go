@@ -7,6 +7,7 @@ import (
 	"github.com/appleboy/gin-jwt"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
 )
@@ -70,10 +71,16 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		}
 
 		user.TwoFactor.LastUsed = &lastUsed
-		lastLoginAt := time.Now().UTC()
-		user.LastLoginAt = &lastLoginAt
-		account.UpdateUser(user)
+	} else {
+		if loginVals.TwoFactor != "" {
+			log.Print("2fa not active but provided")
+			return nil, jwt.ErrFailedAuthentication
+		}
 	}
+
+	lastLoginAt := time.Now().UTC()
+	user.LastLoginAt = &lastLoginAt
+	account.UpdateUser(user)
 
 	return user, nil
 }
@@ -92,6 +99,12 @@ func Unauthorized(c *gin.Context, code int, message string) {
 		"code":    code,
 		"message": message,
 	})
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+
+	return string(bytes), err
 }
 
 //func verify(user account.User, code string) (success bool, err error) {

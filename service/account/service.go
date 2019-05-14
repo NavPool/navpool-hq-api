@@ -7,10 +7,10 @@ import (
 	"log"
 )
 
-func CreateUser(username string, password string) (err error) {
+func CreateUser(username string, password string) (user *User, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		return err
+		return
 	}
 	defer database.Close(db)
 
@@ -19,8 +19,10 @@ func CreateUser(username string, password string) (err error) {
 		return
 	}
 
-	user := &User{Username: username, Password: password, Active: true, TwoFactor: &TwoFactor{Active: false}}
-	return db.Create(user).Error
+	user = &User{Username: username, Password: password, Active: true, TwoFactor: &TwoFactor{Active: false}}
+	err = db.Create(user).Error
+
+	return
 }
 
 func GetUserByUsernamePassword(username string, password string, relationships ...string) (user User, err error) {
@@ -46,6 +48,19 @@ func GetUserByUsernamePassword(username string, password string, relationships .
 	retrieveRelationships(db, &user, relationships...)
 
 	return user, nil
+}
+
+func UsernameExists(username string) (bool, error) {
+	db, err := database.NewConnection()
+	if err != nil {
+		return false, err
+	}
+	defer database.Close(db)
+
+	var count int
+	err = db.Table("users").Where("username = ?", username).Count(&count).Error
+
+	return count == 1, err
 }
 
 func GetUserByClaim(claimUser User, relationships ...string) (user User, err error) {
