@@ -11,7 +11,8 @@ type Controller struct{}
 var (
 	ErrMissingRegisterValues       = errors.New("Username, password or password confirmation not provided")
 	ErrPasswordsDontMatch          = errors.New("Passwords do not match")
-	ErrPasswordtooShort            = errors.New("Password must be at least 8 characters")
+	ErrUsernameTooShort            = errors.New("Username must be at least 6 characters")
+	ErrPasswordTooShort            = errors.New("Password must be at least 6 characters")
 	ErrUsernameAlreadyInUse        = errors.New("The username is already in use")
 	ErrUserRegistrationUnavailable = errors.New("User registering is unavailable")
 )
@@ -23,13 +24,18 @@ func (controller *Controller) Register(c *gin.Context) {
 		return
 	}
 
+	if len(registerVals.Username) < 6 {
+		_ = c.Error(ErrUsernameTooShort).SetType(gin.ErrorTypePublic)
+		return
+	}
+
 	if registerVals.Password != registerVals.PasswordConfirm {
 		_ = c.Error(ErrPasswordsDontMatch).SetType(gin.ErrorTypePublic)
 		return
 	}
 
-	if len(registerVals.Password) < 8 {
-		_ = c.Error(ErrPasswordtooShort).SetType(gin.ErrorTypePublic)
+	if len(registerVals.Password) < 6 {
+		_ = c.Error(ErrPasswordTooShort).SetType(gin.ErrorTypePublic)
 		return
 	}
 
