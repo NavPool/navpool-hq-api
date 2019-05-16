@@ -47,7 +47,7 @@ func main() {
 	authGroup := r.Group("/auth")
 	authGroup.POST("/login", authMiddleware.LoginHandler)
 	authGroup.POST("/register", authController.Register)
-	authGroup.GET("/refresh_token", authMiddleware.RefreshHandler)
+	authGroup.GET("/refresh-token", authMiddleware.RefreshHandler)
 
 	apiGroup := r.Group("/")
 	apiGroup.Use(authMiddleware.MiddlewareFunc())

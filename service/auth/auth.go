@@ -7,7 +7,6 @@ import (
 	"github.com/appleboy/gin-jwt"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
 )
@@ -19,7 +18,7 @@ func Middleware() (*jwt.GinJWTMiddleware, error) {
 		Realm:           config.Get().JWT.Realm,
 		Key:             []byte(config.Get().JWT.Secret),
 		Timeout:         time.Hour,
-		MaxRefresh:      time.Hour,
+		MaxRefresh:      time.Hour * 24,
 		IdentityKey:     identityKey,
 		PayloadFunc:     Payload,
 		IdentityHandler: IdentityHandler,
@@ -100,23 +99,3 @@ func Unauthorized(c *gin.Context, code int, message string) {
 		"message": message,
 	})
 }
-
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-
-	return string(bytes), err
-}
-
-//func verify(user account.User, code string) (success bool, err error) {
-//	var lastUsedList []int
-//
-//	otpConfig := &dgoogauth.OTPConfig{
-//		Secret:      *user.TwoFactor.Secret,
-//		WindowSize:  3,
-//		DisallowReuse: append(lastUsedList, *user.TwoFactor.LastUsed),
-//		HotpCounter: 0,
-//		UTC: true,
-//	}
-//
-//	return otpConfig.Authenticate(code)
-//}
