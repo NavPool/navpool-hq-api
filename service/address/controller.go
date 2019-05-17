@@ -38,8 +38,6 @@ func (controller *Controller) GetAddresses(c *gin.Context) {
 	userId, _ := c.Get("id")
 	user := userId.(account.User)
 
-	log.Printf("Get addresses for user %s", user.ID.String())
-
 	addresses, err := GetAddresses(user)
 	if err != nil {
 		_ = c.Error(err).SetType(gin.ErrorTypePublic)
@@ -54,12 +52,14 @@ func (controller *Controller) GetAddress(c *gin.Context) {
 	user := userId.(account.User)
 
 	id, err := uuid.FromString(c.Param("id"))
-
-	log.Printf("Get address %s for user %s", id, user.ID.String())
+	if err != nil {
+		_ = c.Error(ErrorUnableToFindAddress).SetType(gin.ErrorTypePublic)
+		return
+	}
 
 	address, err := GetAddress(id, user)
 	if err != nil {
-		_ = c.Error(err).SetType(gin.ErrorTypePublic)
+		_ = c.Error(ErrorUnableToFindAddress).SetType(gin.ErrorTypePublic)
 		return
 	}
 
@@ -71,8 +71,10 @@ func (controller *Controller) DeleteAddress(c *gin.Context) {
 	user := userId.(account.User)
 
 	id, err := uuid.FromString(c.Param("id"))
-
-	log.Printf("Delete address %s for user %s", id, user.ID.String())
+	if err != nil {
+		_ = c.Error(ErrorUnableToDeleteAddress).SetType(gin.ErrorTypePublic)
+		return
+	}
 
 	err = DeleteAddress(id, user)
 	if err != nil {
