@@ -4,6 +4,7 @@ import (
 	"encoding/base32"
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/dgryski/dgoogauth"
+	"github.com/getsentry/raven-go"
 	"math/rand"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ func GetSecret(accountName string, user account.User) (otp Otp, err error) {
 
 		err := account.UpdateUser(user)
 		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
 			return otp, err
 		}
 	}
@@ -40,6 +42,7 @@ func Enable(verification Verification, user account.User) (err error) {
 
 	success, lastUsed, err := Verify(user.TwoFactor.Secret, verification.Code, user.TwoFactor.LastUsed)
 	if err != nil || success == false {
+		raven.CaptureErrorAndWait(err, nil)
 		err = ErrTwoFactorInvalidCode
 		return
 	}
@@ -62,6 +65,9 @@ func Disable(verification Verification, user account.User) (err error) {
 
 	success, lastUsed, err := Verify(user.TwoFactor.Secret, verification.Code, user.TwoFactor.LastUsed)
 	if err != nil || success == false {
+		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
+		}
 		err = ErrTwoFactorInvalidCode
 		return
 	}

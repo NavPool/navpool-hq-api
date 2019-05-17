@@ -8,6 +8,7 @@ import (
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/NavPool/navpool-hq-api/service/address"
 	"github.com/NavPool/navpool-hq-api/service/communityFund/model"
+	"github.com/getsentry/raven-go"
 	"log"
 )
 
@@ -20,13 +21,14 @@ var (
 func GetProposalVotes(user account.User) (votes []model.Vote, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 	defer database.Close(db)
 
 	err = db.Where(&model.Vote{UserID: user.ID, Type: model.VoteTypeProposal}).Find(&votes).Error
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		err = ErrorUnableToGetProposalVotes
 	}
 
@@ -36,12 +38,14 @@ func GetProposalVotes(user account.User) (votes []model.Vote, err error) {
 func UpdateProposalVotes(voteDtos []VoteDto, user account.User) (err error) {
 	db, err := database.NewConnection()
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 	defer database.Close(db)
 
 	votes, err := GetProposalVotes(user)
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return err
 	}
 
@@ -53,6 +57,7 @@ func UpdateProposalVotes(voteDtos []VoteDto, user account.User) (err error) {
 		if err == nil {
 			err = tx.Model(&vote).Updates(model.Vote{Choice: voteDto.Choice, Committed: false}).Error
 		} else {
+			raven.CaptureErrorAndWait(err, nil)
 			newVote := &model.Vote{
 				UserID:    user.ID,
 				Type:      model.VoteTypeProposal,
@@ -65,20 +70,21 @@ func UpdateProposalVotes(voteDtos []VoteDto, user account.User) (err error) {
 		}
 
 		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
 			tx.Rollback()
 			return err
 		}
 		modifiedVotes = append(modifiedVotes, vote)
 	}
+
 	err = tx.Commit().Error
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
-
-	log.Printf("%d votes have been updated", len(modifiedVotes))
 	err = updatePoolVotes(modifiedVotes, user)
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return err
 	}
 
@@ -88,13 +94,14 @@ func UpdateProposalVotes(voteDtos []VoteDto, user account.User) (err error) {
 func GetPaymentRequestVotes(user account.User) (votes []model.Vote, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 	defer database.Close(db)
 
 	err = db.Where(&model.Vote{UserID: user.ID, Type: model.VoteTypePaymentRequest}).Find(&votes).Error
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		err = ErrorUnableToGetPaymentRequestVotes
 	}
 
@@ -104,12 +111,14 @@ func GetPaymentRequestVotes(user account.User) (votes []model.Vote, err error) {
 func UpdatePaymentRequestVotes(voteDtos []VoteDto, user account.User) (err error) {
 	db, err := database.NewConnection()
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 	defer database.Close(db)
 
 	votes, err := GetPaymentRequestVotes(user)
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return err
 	}
 
@@ -121,6 +130,7 @@ func UpdatePaymentRequestVotes(voteDtos []VoteDto, user account.User) (err error
 		if err == nil {
 			err = tx.Model(&vote).Updates(model.Vote{Choice: voteDto.Choice, Committed: false}).Error
 		} else {
+			raven.CaptureErrorAndWait(err, nil)
 			newVote := &model.Vote{
 				UserID:    user.ID,
 				Type:      model.VoteTypePaymentRequest,
@@ -133,6 +143,7 @@ func UpdatePaymentRequestVotes(voteDtos []VoteDto, user account.User) (err error
 		}
 
 		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
 			tx.Rollback()
 			return err
 		}
@@ -140,13 +151,14 @@ func UpdatePaymentRequestVotes(voteDtos []VoteDto, user account.User) (err error
 	}
 	err = tx.Commit().Error
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 
 	log.Printf("%d votes have been updated", len(modifiedVotes))
 	err = updatePoolVotes(modifiedVotes, user)
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return err
 	}
 
@@ -174,6 +186,7 @@ func updatePoolVotes(votes []model.Vote, user account.User) (err error) {
 
 	addresses, err := address.GetAddresses(user)
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return err
 	}
 

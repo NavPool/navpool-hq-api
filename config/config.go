@@ -42,6 +42,10 @@ type Config struct {
 	}
 
 	SelectedNetwork string
+
+	Sentry struct {
+		DSN string
+	}
 }
 
 var instance *Config
