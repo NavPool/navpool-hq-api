@@ -25,7 +25,9 @@ func main() {
 
 	dbFixtures()
 
-	raven.SetDSN("your dsn")
+	if config.Get().Sentry.Active {
+		raven.SetDSN(config.Get().Sentry.DSN)
+	}
 
 	r := gin.New()
 

@@ -84,7 +84,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 }
 
 func Authorizator(data interface{}, c *gin.Context) bool {
-	if v, ok := data.(account.User); ok {
+	if _, ok := data.(account.User); ok {
 		return true
 	}
 
