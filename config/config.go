@@ -44,7 +44,8 @@ type Config struct {
 	SelectedNetwork string
 
 	Sentry struct {
-		DSN string
+		Active bool
+		DSN    string
 	}
 }
 
