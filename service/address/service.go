@@ -8,8 +8,8 @@ import (
 	"github.com/NavPool/navpool-hq-api/navpool"
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/NavPool/navpool-hq-api/service/address/model"
+	"github.com/getsentry/raven-go"
 	uuid "github.com/satori/go.uuid"
-	"log"
 	"strings"
 )
 
@@ -23,7 +23,7 @@ var (
 func CreateNewAddress(addressDto AddressDto, user account.User) (address *model.Address, err error) {
 	poolAddress, err := getPoolAddress(addressDto.Hash, addressDto.Signature)
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 
@@ -36,13 +36,14 @@ func CreateNewAddress(addressDto AddressDto, user account.User) (address *model.
 
 	db, err := database.NewConnection()
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 	defer db.Close()
 
 	err = db.Create(address).Error
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"addresses_spending_address_key\"") {
 			err = ErrorSpendingAddressAlreadyInUse
 		} else {
@@ -64,7 +65,7 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 
 	explorerApi, err := navexplorer.NewExplorerApi(config.Get().Explorer.Url, config.Get().SelectedNetwork)
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 
@@ -72,9 +73,10 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 	for _, address := range addresses {
 		hashes = append(hashes, address.StakingAddress)
 	}
+
 	balances, err := explorerApi.GetBalances(hashes)
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 	for i := range addresses {
@@ -83,6 +85,33 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 				addresses[i].Balance = balance.ColdStakedBalance
 			}
 		}
+	}
+
+	return
+}
+
+func GetAddress(id uuid.UUID, user account.User) (address model.Address, err error) {
+	db, err := database.NewConnection()
+	if err != nil {
+		return
+	}
+	defer database.Close(db)
+
+	db.Where(&model.Address{UserID: user.ID, ID: id}).First(&address)
+
+	explorerApi, err := navexplorer.NewExplorerApi(config.Get().Explorer.Url, config.Get().SelectedNetwork)
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+		return
+	}
+
+	balances, err := explorerApi.GetBalances([]string{address.StakingAddress})
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+		return
+	}
+	if len(balances) == 1 {
+		address.Balance = balances[0].ColdStakedBalance
 	}
 
 	return
@@ -102,7 +131,7 @@ func DeleteAddress(id uuid.UUID, user account.User) (err error) {
 func getPoolAddress(hash string, signature string) (poolAddress navpool.PoolAddress, err error) {
 	poolApi, err := navpool.NewPoolApi(config.Get().Pool.Url, config.Get().SelectedNetwork)
 	if err != nil {
-		log.Print(err)
+		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
 

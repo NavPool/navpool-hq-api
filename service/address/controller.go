@@ -49,6 +49,23 @@ func (controller *Controller) GetAddresses(c *gin.Context) {
 	c.JSON(200, addresses)
 }
 
+func (controller *Controller) GetAddress(c *gin.Context) {
+	userId, _ := c.Get("id")
+	user := userId.(account.User)
+
+	id, err := uuid.FromString(c.Param("id"))
+
+	log.Printf("Get address %s for user %s", id, user.ID.String())
+
+	address, err := GetAddress(id, user)
+	if err != nil {
+		_ = c.Error(err).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	c.JSON(200, address)
+}
+
 func (controller *Controller) DeleteAddress(c *gin.Context) {
 	userId, _ := c.Get("id")
 	user := userId.(account.User)

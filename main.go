@@ -11,6 +11,7 @@ import (
 	"github.com/NavPool/navpool-hq-api/service/communityFund"
 	model2 "github.com/NavPool/navpool-hq-api/service/communityFund/model"
 	"github.com/NavPool/navpool-hq-api/service/twofactor"
+	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -23,6 +24,8 @@ func main() {
 	}
 
 	dbFixtures()
+
+	raven.SetDSN("your dsn")
 
 	r := gin.New()
 
@@ -61,6 +64,7 @@ func main() {
 		apiGroup.POST("/2fa/disable", twofactorController.DisableTwoFactor)
 
 		addressController := new(address.Controller)
+		apiGroup.GET("/address/:id", addressController.GetAddress)
 		apiGroup.DELETE("/address/:id", addressController.DeleteAddress)
 		apiGroup.GET("/address", addressController.GetAddresses)
 		apiGroup.POST("/address", addressController.CreateAddress)

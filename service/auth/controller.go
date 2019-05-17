@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"github.com/NavPool/navpool-hq-api/service/account"
+	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +21,7 @@ var (
 func (controller *Controller) Register(c *gin.Context) {
 	var registerVals account.Register
 	if err := c.ShouldBind(&registerVals); err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		_ = c.Error(ErrMissingRegisterValues).SetType(gin.ErrorTypePublic)
 		return
 	}
@@ -41,12 +43,16 @@ func (controller *Controller) Register(c *gin.Context) {
 
 	exists, err := account.UsernameExists(registerVals.Username)
 	if err != nil || exists == true {
+		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
+		}
 		_ = c.Error(ErrUsernameAlreadyInUse).SetType(gin.ErrorTypePublic)
 		return
 	}
 
 	user, err := account.CreateUser(registerVals.Username, registerVals.Password)
 	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
 		_ = c.Error(ErrUserRegistrationUnavailable).SetType(gin.ErrorTypePublic)
 		return
 	}

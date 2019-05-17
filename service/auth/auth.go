@@ -5,9 +5,9 @@ import (
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/NavPool/navpool-hq-api/service/twofactor"
 	"github.com/appleboy/gin-jwt"
+	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
-	"log"
 	"time"
 )
 
@@ -38,8 +38,6 @@ func Payload(data interface{}) jwt.MapClaims {
 		}
 	}
 
-	log.Println("Couldn't map the payload to a user")
-
 	return jwt.MapClaims{}
 }
 
@@ -58,21 +56,22 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 	user, err := account.GetUserByUsernamePassword(loginVals.Username, loginVals.Password, "TwoFactor")
 	if err != nil {
-		log.Printf("Username or Password incorrect for %s", loginVals.Username)
+		raven.CaptureErrorAndWait(err, nil)
 		return nil, jwt.ErrFailedAuthentication
 	}
 
 	if user.TwoFactor.Active {
-		log.Printf("2fa active for %s", loginVals.Username)
 		success, lastUsed, err := twofactor.Verify(user.TwoFactor.Secret, loginVals.TwoFactor, user.TwoFactor.LastUsed)
 		if err != nil || success == false {
+			if err != nil {
+				raven.CaptureErrorAndWait(err, nil)
+			}
 			return nil, jwt.ErrFailedAuthentication
 		}
 
 		user.TwoFactor.LastUsed = &lastUsed
 	} else {
 		if loginVals.TwoFactor != "" {
-			log.Print("2fa not active but provided")
 			return nil, jwt.ErrFailedAuthentication
 		}
 	}
@@ -86,7 +85,6 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 func Authorizator(data interface{}, c *gin.Context) bool {
 	if v, ok := data.(account.User); ok {
-		log.Printf("Authorized access for: %s", v.ID)
 		return true
 	}
 
