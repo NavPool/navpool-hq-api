@@ -17,7 +17,7 @@ func Middleware() (*jwt.GinJWTMiddleware, error) {
 	return jwt.New(&jwt.GinJWTMiddleware{
 		Realm:           config.Get().JWT.Realm,
 		Key:             []byte(config.Get().JWT.Secret),
-		Timeout:         time.Hour,
+		Timeout:         time.Hour * 6,
 		MaxRefresh:      time.Hour * 24,
 		IdentityKey:     identityKey,
 		PayloadFunc:     Payload,
