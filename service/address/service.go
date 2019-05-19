@@ -81,13 +81,17 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 		raven.CaptureErrorAndWait(err, nil)
 		return
 	}
+
+	tx := db.Begin()
 	for i := range addresses {
 		for _, balance := range balances {
 			if addresses[i].StakingAddress == balance.Address {
 				addresses[i].Balance = balance.ColdStakedBalance
+				tx.Save(addresses[i])
 			}
 		}
 	}
+	tx.Commit()
 
 	return
 }
