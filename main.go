@@ -10,6 +10,7 @@ import (
 	"github.com/NavPool/navpool-hq-api/service/auth"
 	"github.com/NavPool/navpool-hq-api/service/communityFund"
 	model2 "github.com/NavPool/navpool-hq-api/service/communityFund/model"
+	"github.com/NavPool/navpool-hq-api/service/network"
 	"github.com/NavPool/navpool-hq-api/service/twofactor"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/gzip"
@@ -55,6 +56,10 @@ func main() {
 	authGroup.GET("/refresh-token", authMiddleware.RefreshHandler)
 
 	apiGroup := r.Group("/")
+
+	networkController := new(network.Controller)
+	apiGroup.GET("/network/pool-stats", networkController.GetPoolStats)
+
 	apiGroup.Use(authMiddleware.MiddlewareFunc())
 	{
 		authController := new(account.Controller)
@@ -70,6 +75,7 @@ func main() {
 		apiGroup.DELETE("/address/:id", addressController.DeleteAddress)
 		apiGroup.GET("/address", addressController.GetAddresses)
 		apiGroup.POST("/address", addressController.CreateAddress)
+		apiGroup.GET("/address/:id/tx/staking", addressController.GetAddressStakingTransactions)
 
 		communityFundController := new(communityFund.Controller)
 		apiGroup.GET("/community-fund/proposal/vote", communityFundController.GetProposalVotes)
@@ -77,6 +83,10 @@ func main() {
 		apiGroup.GET("/community-fund/payment-request/vote", communityFundController.GetPaymentRequestVotes)
 		apiGroup.PUT("/community-fund/payment-request/vote", communityFundController.UpdatePaymentRequestVotes)
 	}
+
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(404, gin.H{"code": 404, "message": "Resource not found"})
+	})
 
 	_ = r.Run(":" + config.Get().Server.Port)
 }
