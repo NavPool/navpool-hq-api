@@ -134,6 +134,24 @@ func DeleteAddress(id uuid.UUID, user account.User) (err error) {
 	return
 }
 
+func GetPoolBalance() (balance float64, err error) {
+	db, err := database.NewConnection()
+	if err != nil {
+		return
+	}
+	defer database.Close(db)
+
+	var address model.Address
+	err = db.Model(&model.Address{}).Select("sum(balance) as balance").Scan(&address).Error
+	if err != nil {
+		return
+	}
+
+	balance = address.Balance
+
+	return
+}
+
 func getPoolAddress(hash string, signature string) (poolAddress navpool.PoolAddress, err error) {
 	poolApi, err := navpool.NewPoolApi(config.Get().Pool.Url, config.Get().SelectedNetwork)
 	if err != nil {
