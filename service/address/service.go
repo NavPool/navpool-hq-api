@@ -17,8 +17,6 @@ var (
 	ErrorUnableToFindAddress          = errors.New("Unable to find the address on your account")
 	ErrorUnableToRetrieveTransactions = errors.New("Unable to retrieve transactions")
 	ErrorUnableToDeleteAddress        = errors.New("Unable to delete the address")
-	ErrorInvalidAddress               = errors.New("The address provided is invalid")
-	ErrorColdStakingDetected          = errors.New("The address provided is a cold stakign address")
 	ErrorSpendingAddressAlreadyInUse  = errors.New("The spending address provided is already in use")
 	ErrorUnableToSaveAddress          = errors.New("Unable to save the address")
 )
