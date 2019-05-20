@@ -118,6 +118,22 @@ func DeleteUser(username string, soft bool) (err error) {
 	return db.Delete(User{}, "username = ?", username).Error
 }
 
+func GetUserCount() (count int, err error) {
+	db, err := database.NewConnection()
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+		return
+	}
+	defer database.Close(db)
+
+	err = db.Table("users").Count(&count).Error
+	if err != nil {
+		raven.CaptureErrorAndWait(err, nil)
+	}
+
+	return
+}
+
 func retrieveRelationships(db *gorm.DB, user *User, relationships ...string) {
 	set := make(map[string]bool)
 	for _, v := range relationships {
