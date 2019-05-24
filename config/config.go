@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/NavPool/navpool-api/config"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -72,7 +71,7 @@ func Get() *Config {
 			log.Fatal(err)
 		}
 
-		if config.Get().Debug {
+		if instance.Debug {
 			configJson, _ := json.Marshal(instance)
 			log.Printf("Config: %s", string(configJson))
 		}
