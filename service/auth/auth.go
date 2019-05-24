@@ -19,7 +19,6 @@ func Middleware() (*jwt.GinJWTMiddleware, error) {
 		Key:             []byte(config.Get().JWT.Secret),
 		Timeout:         time.Hour * 6,
 		MaxRefresh:      time.Hour * 24,
-		IdentityKey:     identityKey,
 		PayloadFunc:     Payload,
 		IdentityHandler: IdentityHandler,
 		Authenticator:   Authenticator,

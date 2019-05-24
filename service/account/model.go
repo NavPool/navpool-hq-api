@@ -2,7 +2,6 @@ package account
 
 import (
 	"github.com/NavPool/navpool-hq-api/service/address/model"
-	"github.com/getsentry/raven-go"
 	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
 	"time"
@@ -63,11 +62,5 @@ func (t *TwoFactor) Enable() *TwoFactor {
 }
 
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
-	id, err := uuid.NewV4()
-	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
-		return err
-	}
-
-	return scope.SetColumn("ID", id)
+	return scope.SetColumn("ID", uuid.NewV4())
 }

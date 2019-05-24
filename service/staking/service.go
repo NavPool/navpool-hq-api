@@ -64,8 +64,7 @@ func GetStakingRewardsForUser(user account.User) (accountRewards AccountRewards,
 				}
 			}
 		}
-
-		return
-
 	}
+
+	return
 }
