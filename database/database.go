@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/NavPool/navpool-hq-api/config"
-	"github.com/getsentry/raven-go"
+	"github.com/NavPool/navpool-hq-api/logger"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"log"
@@ -25,7 +25,7 @@ func NewConnection() (db *gorm.DB, err error) {
 
 	db, err = gorm.Open(config.Get().DB.Dialect, args)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		err = ErrorDatabaseConnection
 	}
 

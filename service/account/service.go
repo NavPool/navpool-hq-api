@@ -2,7 +2,7 @@ package account
 
 import (
 	"github.com/NavPool/navpool-hq-api/database"
-	"github.com/getsentry/raven-go"
+	"github.com/NavPool/navpool-hq-api/logger"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -11,21 +11,21 @@ import (
 func CreateUser(username string, password string) (user *User, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 	defer database.Close(db)
 
 	password, err = hashPassword(password)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 
 	user = &User{Username: username, Password: password, Active: true, TwoFactor: &TwoFactor{Active: false}}
 	err = db.Create(user).Error
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 	}
 
 	return
@@ -34,7 +34,7 @@ func CreateUser(username string, password string) (user *User, err error) {
 func GetUserByUsernamePassword(username string, password string, relationships ...string) (user User, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 	defer database.Close(db)
@@ -60,7 +60,7 @@ func GetUserByUsernamePassword(username string, password string, relationships .
 func UsernameExists(username string) (bool, error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return false, err
 	}
 	defer database.Close(db)
@@ -68,7 +68,7 @@ func UsernameExists(username string) (bool, error) {
 	var count int
 	err = db.Table("users").Where("username = ?", username).Count(&count).Error
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 	}
 
 	return count == 1, err
@@ -77,7 +77,7 @@ func UsernameExists(username string) (bool, error) {
 func GetUserByClaim(claimUser User, relationships ...string) (user User, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		err = ErrUnableToValidateUser
 		return
 	}
@@ -93,7 +93,7 @@ func GetUserByClaim(claimUser User, relationships ...string) (user User, err err
 func UpdateUser(user User) (err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 	defer database.Close(db)
@@ -106,7 +106,7 @@ func UpdateUser(user User) (err error) {
 func DeleteUser(username string, soft bool) (err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return err
 	}
 	defer database.Close(db)
@@ -121,14 +121,14 @@ func DeleteUser(username string, soft bool) (err error) {
 func GetUserCount() (count int, err error) {
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 	defer database.Close(db)
 
 	err = db.Table("users").Count(&count).Error
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 	}
 
 	return
@@ -151,7 +151,8 @@ func retrieveRelationships(db *gorm.DB, user *User, relationships ...string) {
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 	}
+
 	return string(bytes), err
 }

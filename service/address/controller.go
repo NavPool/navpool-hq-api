@@ -1,10 +1,7 @@
 package address
 
 import (
-	"github.com/NavExplorer/navexplorer-sdk-go"
-	"github.com/NavPool/navpool-hq-api/config"
 	"github.com/NavPool/navpool-hq-api/service/account"
-	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"log"
@@ -86,37 +83,4 @@ func (controller *Controller) DeleteAddress(c *gin.Context) {
 	}
 
 	c.JSON(200, nil)
-}
-
-func (controller *Controller) GetAddressStakingTransactions(c *gin.Context) {
-	userId, _ := c.Get("id")
-	user := userId.(account.User)
-
-	id, err := uuid.FromString(c.Param("id"))
-	if err != nil {
-		err = ErrorUnableToRetrieveTransactions
-		return
-	}
-
-	address, err := GetAddress(id, user)
-	if err != nil {
-		err = ErrorUnableToRetrieveTransactions
-		return
-	}
-
-	explorerApi, err := navexplorer.NewExplorerApi(config.Get().Explorer.Url, config.Get().SelectedNetwork)
-	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
-		err = ErrorUnableToRetrieveTransactions
-		return
-	}
-
-	transactions, _, err := explorerApi.GetAddressColdTransactions(address.StakingAddress, []navexplorer.TransactionType{navexplorer.TX_COLD_STAKING}, 0, 100)
-	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
-		err = ErrorUnableToRetrieveTransactions
-		return
-	}
-
-	c.JSON(200, transactions)
 }

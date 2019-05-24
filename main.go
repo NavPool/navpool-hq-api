@@ -2,15 +2,14 @@ package main
 
 import (
 	"github.com/NavPool/navpool-hq-api/config"
-	"github.com/NavPool/navpool-hq-api/database"
+	"github.com/NavPool/navpool-hq-api/database/migrate"
 	"github.com/NavPool/navpool-hq-api/middleware"
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/NavPool/navpool-hq-api/service/address"
-	"github.com/NavPool/navpool-hq-api/service/address/model"
 	"github.com/NavPool/navpool-hq-api/service/auth"
 	"github.com/NavPool/navpool-hq-api/service/communityFund"
-	model2 "github.com/NavPool/navpool-hq-api/service/communityFund/model"
 	"github.com/NavPool/navpool-hq-api/service/network"
+	"github.com/NavPool/navpool-hq-api/service/staking"
 	"github.com/NavPool/navpool-hq-api/service/twofactor"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/gzip"
@@ -20,14 +19,12 @@ import (
 )
 
 func main() {
-	if config.Get().Debug == false {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	setReleaseMode()
 
-	dbFixtures()
+	migrate.Migrate()
 
 	if config.Get().Sentry.Active {
-		raven.SetDSN(config.Get().Sentry.DSN)
+		_ = raven.SetDSN(config.Get().Sentry.DSN)
 	}
 
 	r := gin.New()
@@ -62,20 +59,19 @@ func main() {
 
 	apiGroup.Use(authMiddleware.MiddlewareFunc())
 	{
-		authController := new(account.Controller)
-		apiGroup.GET("/account", authController.GetAccount)
+		accountController := new(account.Controller)
+		apiGroup.GET("/account", accountController.GetAccount)
 
-		twofactorController := new(twofactor.Controller)
-		apiGroup.GET("/2fa/activate", twofactorController.GetTwoFactorSecret)
-		apiGroup.POST("/2fa/enable", twofactorController.EnableTwoFactor)
-		apiGroup.POST("/2fa/disable", twofactorController.DisableTwoFactor)
+		twoFactorController := new(twofactor.Controller)
+		apiGroup.GET("/2fa/activate", twoFactorController.GetTwoFactorSecret)
+		apiGroup.POST("/2fa/enable", twoFactorController.EnableTwoFactor)
+		apiGroup.POST("/2fa/disable", twoFactorController.DisableTwoFactor)
 
 		addressController := new(address.Controller)
 		apiGroup.GET("/address/:id", addressController.GetAddress)
 		apiGroup.DELETE("/address/:id", addressController.DeleteAddress)
 		apiGroup.GET("/address", addressController.GetAddresses)
 		apiGroup.POST("/address", addressController.CreateAddress)
-		apiGroup.GET("/address/:id/tx/staking", addressController.GetAddressStakingTransactions)
 
 		communityFundController := new(communityFund.Controller)
 		apiGroup.GET("/community-fund/proposal/vote", communityFundController.GetProposalVotes)
@@ -91,17 +87,12 @@ func main() {
 	_ = r.Run(":" + config.Get().Server.Port)
 }
 
-func dbFixtures() {
-	db, err := database.NewConnection()
-	if err != nil {
-		return
-	}
-
-	db.AutoMigrate(&account.User{}, &account.TwoFactor{}, model.Address{}, model2.Vote{})
-
-	if config.Get().Fixtures == true {
-		account.CreateUser("admin", "admin")
-		account.CreateUser("deleted", "deleted")
-		account.DeleteUser("deleted", true)
+func setReleaseMode() {
+	if config.Get().Debug == false {
+		log.Printf("Mode: %s", gin.ReleaseMode)
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		log.Printf("Mode: %s", gin.DebugMode)
+		gin.SetMode(gin.DebugMode)
 	}
 }

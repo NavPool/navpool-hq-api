@@ -2,10 +2,10 @@ package auth
 
 import (
 	"github.com/NavPool/navpool-hq-api/config"
+	"github.com/NavPool/navpool-hq-api/logger"
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/NavPool/navpool-hq-api/service/twofactor"
 	"github.com/appleboy/gin-jwt"
-	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"time"
@@ -56,7 +56,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 	user, err := account.GetUserByUsernamePassword(loginVals.Username, loginVals.Password, "TwoFactor")
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return nil, jwt.ErrFailedAuthentication
 	}
 
@@ -64,7 +64,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		success, lastUsed, err := twofactor.Verify(user.TwoFactor.Secret, loginVals.TwoFactor, user.TwoFactor.LastUsed)
 		if err != nil || success == false {
 			if err != nil {
-				raven.CaptureErrorAndWait(err, nil)
+				logger.LogError(err)
 			}
 			return nil, jwt.ErrFailedAuthentication
 		}
@@ -78,7 +78,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 	lastLoginAt := time.Now().UTC()
 	user.LastLoginAt = &lastLoginAt
-	account.UpdateUser(user)
+	_ = account.UpdateUser(user)
 
 	return user, nil
 }

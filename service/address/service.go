@@ -5,26 +5,26 @@ import (
 	"github.com/NavExplorer/navexplorer-sdk-go"
 	"github.com/NavPool/navpool-hq-api/config"
 	"github.com/NavPool/navpool-hq-api/database"
+	"github.com/NavPool/navpool-hq-api/logger"
 	"github.com/NavPool/navpool-hq-api/navpool"
 	"github.com/NavPool/navpool-hq-api/service/account"
 	"github.com/NavPool/navpool-hq-api/service/address/model"
-	"github.com/getsentry/raven-go"
 	uuid "github.com/satori/go.uuid"
 	"strings"
 )
 
 var (
 	ErrorUnableToFindAddress          = errors.New("Unable to find the address on your account")
-	ErrorUnableToRetrieveTransactions = errors.New("Unable to retrieve transactions")
 	ErrorUnableToDeleteAddress        = errors.New("Unable to delete the address")
 	ErrorSpendingAddressAlreadyInUse  = errors.New("The spending address provided is already in use")
 	ErrorUnableToSaveAddress          = errors.New("Unable to save the address")
+	ErrorUnableToRetrieveTransactions = errors.New("Unable to retrieve transactions")
 )
 
 func CreateNewAddress(addressDto AddressDto, user account.User) (address *model.Address, err error) {
 	poolAddress, err := getPoolAddress(addressDto.Hash, addressDto.Signature)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 
@@ -37,14 +37,15 @@ func CreateNewAddress(addressDto AddressDto, user account.User) (address *model.
 
 	db, err := database.NewConnection()
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 	defer db.Close()
 
 	err = db.Create(address).Error
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
+
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"addresses_spending_address_key\"") {
 			err = ErrorSpendingAddressAlreadyInUse
 		} else {
@@ -66,7 +67,7 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 
 	explorerApi, err := navexplorer.NewExplorerApi(config.Get().Explorer.Url, config.Get().SelectedNetwork)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 
@@ -77,7 +78,7 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 
 	balances, err := explorerApi.GetBalances(hashes)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 
@@ -85,8 +86,10 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 	for i := range addresses {
 		for _, balance := range balances {
 			if addresses[i].StakingAddress == balance.Address {
+				if addresses[i].Balance != balance.ColdStakedBalance {
+					tx.Save(addresses[i])
+				}
 				addresses[i].Balance = balance.ColdStakedBalance
-				tx.Save(addresses[i])
 			}
 		}
 	}
@@ -106,13 +109,13 @@ func GetAddress(id uuid.UUID, user account.User) (address model.Address, err err
 
 	explorerApi, err := navexplorer.NewExplorerApi(config.Get().Explorer.Url, config.Get().SelectedNetwork)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 
 	balances, err := explorerApi.GetBalances([]string{address.StakingAddress})
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 	if len(balances) == 1 {
@@ -143,6 +146,7 @@ func GetPoolBalance() (balance float64, err error) {
 	var address model.Address
 	err = db.Model(&model.Address{}).Select("sum(balance) as balance").Scan(&address).Error
 	if err != nil {
+		logger.LogError(err)
 		return
 	}
 
@@ -151,10 +155,23 @@ func GetPoolBalance() (balance float64, err error) {
 	return
 }
 
+func GetStakingAddressesForUser(user account.User) (stakingAddresses []string, err error) {
+	addresses, err := GetAddresses(user)
+	if err != nil {
+		return
+	}
+
+	for _, address := range addresses {
+		stakingAddresses = append(stakingAddresses, address.StakingAddress)
+	}
+
+	return
+}
+
 func getPoolAddress(hash string, signature string) (poolAddress navpool.PoolAddress, err error) {
 	poolApi, err := navpool.NewPoolApi(config.Get().Pool.Url, config.Get().SelectedNetwork)
 	if err != nil {
-		raven.CaptureErrorAndWait(err, nil)
+		logger.LogError(err)
 		return
 	}
 

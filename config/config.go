@@ -1,52 +1,56 @@
 package config
 
 import (
-	"github.com/spf13/viper"
+	"encoding/json"
+	"fmt"
+	"github.com/NavPool/navpool-api/config"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"log"
 	"os"
 	"sync"
 )
 
 type Config struct {
-	Debug    bool
-	Fixtures bool
+	Debug           bool         `yaml:"debug"`
+	Server          ServerConfig `yaml:"server"`
+	JWT             JWTConfig    `yaml:"jwt"`
+	DB              DBConfig     `yaml:"db"`
+	Explorer        ApiConfig    `yaml:"explorer"`
+	Pool            ApiConfig    `yaml:"pool"`
+	Sentry          SentryConfig `yaml:"sentry"`
+	SelectedNetwork string       `yaml:"selectedNetwork"`
+}
 
-	Server struct {
-		Port   string
-		Domain string
-	}
+type ServerConfig struct {
+	Port   string `yaml:"port"`
+	Domain string `yaml:"domain"`
+}
 
-	JWT struct {
-		Realm       string
-		Secret      string
-		IdentityKey string
-	}
+type JWTConfig struct {
+	Realm       string `yaml:"realm"`
+	Secret      string `yaml:"secret"`
+	IdentityKey string `yaml:"identityKey"`
+}
 
-	DB struct {
-		Dialect  string
-		Host     string
-		Port     int
-		Username string
-		Password string
-		DbName   string
-		SSLMode  string
-		LogMode  bool
-	}
+type DBConfig struct {
+	Dialect  string `yaml:"dialect"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	DbName   string `yaml:"dbName"`
+	SSLMode  string `yaml:"sslMode"`
+	LogMode  bool   `yaml:"logMode"`
+}
 
-	Explorer struct {
-		Url string
-	}
+type ApiConfig struct {
+	Url string `yaml:"url"`
+}
 
-	Pool struct {
-		Url string
-	}
-
-	SelectedNetwork string
-
-	Sentry struct {
-		Active bool
-		DSN    string
-	}
+type SentryConfig struct {
+	Active bool   `yaml:"active"`
+	DSN    string `yaml:"dsn"`
 }
 
 var instance *Config
@@ -54,25 +58,34 @@ var once sync.Once
 
 func Get() *Config {
 	once.Do(func() {
-		log.Println("Creating Config")
-		var env = "prod"
-		if len(os.Args) > 1 {
-			env = os.Args[1]
-		}
+		filePath := fmt.Sprintf("./config.%s.yaml", env())
+		log.Printf("ConfigFile: %s", filePath)
 
-		viper.SetConfigName("config." + env)
-		viper.AddConfigPath(".")
+		configFile, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		instance = &Config{}
-
-		if err := viper.ReadInConfig(); err != nil {
+		err = yaml.Unmarshal(configFile, instance)
+		if err != nil {
 			log.Fatal(err)
 		}
 
-		if err := viper.Unmarshal(instance); err != nil {
-			log.Fatal(err)
+		if config.Get().Debug {
+			configJson, _ := json.Marshal(instance)
+			log.Printf("Config: %s", string(configJson))
 		}
 	})
-
 	return instance
+}
+
+func env() string {
+	var env = "prod"
+	if len(os.Args) > 1 {
+		env = os.Args[1]
+	}
+	log.Print("Environment: " + env)
+
+	return env
 }
