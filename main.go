@@ -78,6 +78,9 @@ func main() {
 		apiGroup.PUT("/community-fund/proposal/vote", communityFundController.UpdateProposalVotes)
 		apiGroup.GET("/community-fund/payment-request/vote", communityFundController.GetPaymentRequestVotes)
 		apiGroup.PUT("/community-fund/payment-request/vote", communityFundController.UpdatePaymentRequestVotes)
+
+		stakingController := new(staking.Controller)
+		apiGroup.GET("/staking/rewards", stakingController.GetStakingRewardsForAccount)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
