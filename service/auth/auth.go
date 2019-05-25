@@ -20,6 +20,7 @@ func Middleware() (*jwt.GinJWTMiddleware, error) {
 		Timeout:         time.Hour * 6,
 		MaxRefresh:      time.Hour * 24,
 		PayloadFunc:     Payload,
+		IdentityKey:     identityKey,
 		IdentityHandler: IdentityHandler,
 		Authenticator:   Authenticator,
 		Authorizator:    Authorizator,
