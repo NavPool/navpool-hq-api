@@ -23,6 +23,8 @@ func NewConnection() (db *gorm.DB, err error) {
 		config.Get().DB.Password,
 		config.Get().DB.SSLMode)
 
+	log.Print(args)
+
 	db, err = gorm.Open(config.Get().DB.Dialect, args)
 	if err != nil {
 		logger.LogError(err)
