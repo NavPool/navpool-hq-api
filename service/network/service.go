@@ -2,24 +2,44 @@ package network
 
 import (
 	"errors"
+	"github.com/NavPool/navpool-hq-api/config"
+	"github.com/NavPool/navpool-hq-api/logger"
+	"github.com/NavPool/navpool-hq-api/navpool"
 	"github.com/NavPool/navpool-hq-api/service/account"
-	"github.com/NavPool/navpool-hq-api/service/address"
 )
 
 var (
-	ErrorUnableToRetrieveStats = errors.New("Unable to retrieve stats")
+	ErrorUnableToRetrieveStats = errors.New("Unable to network retrieve stats")
 )
 
-func GetPoolStats() (poolStats PoolStats, err error) {
+func GetNetworkStats() (poolStats PoolStats, err error) {
 	accounts, err := account.GetUserCount()
-	if err == nil {
-		poolStats.Accounts = accounts
+	if err != nil {
+		logger.LogError(err)
+		return
 	}
 
-	balance, err := address.GetPoolBalance()
-	if err == nil {
-		poolStats.Balance = balance
+	poolApi, err := navpool.NewPoolApi(config.Get().Pool.Url, config.Get().SelectedNetwork)
+	if err != nil {
+		logger.LogError(err)
+		return
 	}
+
+	info, err := poolApi.GetInfo()
+	if err != nil {
+		logger.LogError(err)
+		return
+	}
+
+	stakingInfo, err := poolApi.GetStakingInfo()
+	if err != nil {
+		logger.LogError(err)
+		return
+	}
+
+	poolStats.Accounts = accounts
+	poolStats.Balance = info.ColdStakingBalance
+	poolStats.Enabled = stakingInfo.Staking
 
 	return
 }

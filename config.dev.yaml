@@ -23,3 +23,6 @@ explorer:
 
 pool:
   url: http://localhost:8082
+
+sentry:
+  active: false

@@ -1,6 +1,7 @@
 package network
 
 type PoolStats struct {
-	Accounts int
-	Balance  float64
+	Enabled  bool    `json:"enabled"`
+	Accounts int     `json:"accounts"`
+	Balance  float64 `json:"balance"`
 }
