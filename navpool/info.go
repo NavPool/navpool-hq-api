@@ -41,8 +41,8 @@ type StakingInfo struct {
 	Difficulty       float64 `json:"difficulty"`
 	SearchInterval   int     `json:"search-interval"`
 	Weight           int     `json:"weight"`
-	NetStakeWeight   string  `json:"netstakeweight"`
-	ExpectedTime     int     `json:"expectediime"`
+	NetStakeWeight   int     `json:"netstakeweight"`
+	ExpectedTime     int     `json:"expectedtime"`
 }
 
 func (e *PoolApi) GetInfo() (info Info, err error) {

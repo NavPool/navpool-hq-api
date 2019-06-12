@@ -25,12 +25,6 @@ func GetNetworkStats() (poolStats PoolStats, err error) {
 		return
 	}
 
-	info, err := poolApi.GetInfo()
-	if err != nil {
-		logger.LogError(err)
-		return
-	}
-
 	stakingInfo, err := poolApi.GetStakingInfo()
 	if err != nil {
 		logger.LogError(err)
@@ -38,8 +32,8 @@ func GetNetworkStats() (poolStats PoolStats, err error) {
 	}
 
 	poolStats.Accounts = accounts
-	poolStats.Balance = info.ColdStakingBalance
-	poolStats.Enabled = stakingInfo.Staking
+	poolStats.Weight = stakingInfo.Weight
+	poolStats.Staking = stakingInfo.Staking
 
 	return
 }
