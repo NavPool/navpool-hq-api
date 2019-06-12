@@ -207,6 +207,8 @@ func updatePoolVotes(votes []model.Vote, user account.User) (err error) {
 			if err == nil {
 				vote.Committed = true
 				db.Save(&vote)
+			} else {
+				logger.LogError(err)
 			}
 		}
 	}
