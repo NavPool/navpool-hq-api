@@ -55,7 +55,7 @@ func main() {
 	apiGroup := r.Group("/")
 
 	networkController := new(network.Controller)
-	apiGroup.GET("/network/pool-stats", networkController.GetPoolStats)
+	apiGroup.GET("/network/stats", networkController.GetNetworkStats)
 
 	apiGroup.Use(authMiddleware.MiddlewareFunc())
 	{
