@@ -54,9 +54,6 @@ func main() {
 
 	apiGroup := r.Group("/")
 
-	networkController := new(network.Controller)
-	apiGroup.GET("/network/stats", networkController.GetNetworkStats)
-
 	apiGroup.Use(authMiddleware.MiddlewareFunc())
 	{
 		accountController := new(account.Controller)
@@ -78,6 +75,9 @@ func main() {
 		apiGroup.PUT("/community-fund/proposal/vote", communityFundController.UpdateProposalVotes)
 		apiGroup.GET("/community-fund/payment-request/vote", communityFundController.GetPaymentRequestVotes)
 		apiGroup.PUT("/community-fund/payment-request/vote", communityFundController.UpdatePaymentRequestVotes)
+
+		networkController := new(network.Controller)
+		apiGroup.GET("/network/stats", networkController.GetNetworkStats)
 
 		stakingController := new(staking.Controller)
 		apiGroup.GET("/staking/rewards", stakingController.GetStakingRewardsForAccount)
