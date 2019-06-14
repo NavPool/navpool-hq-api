@@ -33,6 +33,7 @@ func GetNetworkStats() (poolStats PoolStats, err error) {
 
 	poolStats.Accounts = accounts
 	poolStats.Weight = stakingInfo.Weight
+	poolStats.Enabled = stakingInfo.Enabled
 	poolStats.Staking = stakingInfo.Staking
 
 	return
