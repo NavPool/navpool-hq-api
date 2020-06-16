@@ -19,7 +19,7 @@ db:
   logMode: true
 
 explorer:
-  url: https://api.navexplorer.com
+  url: https://api.v2.navexplorer.com
 
 pool:
   url: http://localhost:8082
