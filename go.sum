@@ -1,5 +1,7 @@
 github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20190524154412-6693c72d5c6a h1:M/0lQFjcsZ5zOVPUxPBGliMYMBwU34p2upmPoe7A6Xk=
 github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20190524154412-6693c72d5c6a/go.mod h1:h3DfzzKEMT+LCh6rWk4whTZew9l9XRz+ZY0RB1gcypY=
+github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20200616202452-da77a388a05a h1:9xBuT7nzNVRvXUjz7vzVECFbcrsryBIm9TlM/o6Diew=
+github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20200616202452-da77a388a05a/go.mod h1:h3DfzzKEMT+LCh6rWk4whTZew9l9XRz+ZY0RB1gcypY=
 github.com/appleboy/gin-jwt v1.0.1 h1:cbLi6ol8KhWUoCBvLFCGpssiBB2iM9eXWwmI9SDG+W0=
 github.com/appleboy/gin-jwt v1.0.1/go.mod h1:pG7tv32IEe5wEh1NSQzcyD02ZZAqZWp07RdGiIhgaRQ=
 github.com/appleboy/gin-jwt/v2 v2.6.3 h1:aK4E3DjihWEBUTjEeRnGkA5nUkmwJPL1CPonMa2usRs=
