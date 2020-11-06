@@ -1,25 +1,29 @@
 package main
 
 import (
-	"github.com/NavPool/navpool-hq-api/config"
-	"github.com/NavPool/navpool-hq-api/database/migrate"
-	"github.com/NavPool/navpool-hq-api/middleware"
-	"github.com/NavPool/navpool-hq-api/service/account"
-	"github.com/NavPool/navpool-hq-api/service/address"
-	"github.com/NavPool/navpool-hq-api/service/auth"
-	"github.com/NavPool/navpool-hq-api/service/communityFund"
-	"github.com/NavPool/navpool-hq-api/service/network"
-	"github.com/NavPool/navpool-hq-api/service/staking"
-	"github.com/NavPool/navpool-hq-api/service/twofactor"
+	"fmt"
+	"github.com/NavPool/navpool-hq-api/internal/config"
+	"github.com/NavPool/navpool-hq-api/internal/database/migrate"
+	"github.com/NavPool/navpool-hq-api/internal/di"
+	"github.com/NavPool/navpool-hq-api/internal/framework"
+	"github.com/NavPool/navpool-hq-api/internal/resource"
+	"github.com/NavPool/navpool-hq-api/internal/service/auth"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func main() {
-	setReleaseMode()
+	di.Init()
+	config.Init()
+
+	if config.Get().Debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	framework.SetReleaseMode(config.Get().Debug)
 
 	migrate.Migrate()
 
@@ -28,14 +32,12 @@ func main() {
 	}
 
 	r := gin.New()
-
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use(middleware.Cors())
-	r.Use(middleware.NetworkSelect)
-	r.Use(middleware.Options)
-	r.Use(middleware.ErrorHandler)
+	r.Use(framework.Cors())
+	r.Use(framework.Options)
+	r.Use(framework.ErrorHandler)
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to NavPool HQ API!")
@@ -44,58 +46,54 @@ func main() {
 	authMiddleware, err := auth.Middleware()
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
+		return
 	}
 
-	authController := new(auth.Controller)
+	authResource := new(resource.AuthResource)
 	authGroup := r.Group("/auth")
 	authGroup.POST("/login", authMiddleware.LoginHandler)
-	authGroup.POST("/register", authController.Register)
+	authGroup.POST("/register", authResource.Register)
 	authGroup.GET("/refresh-token", authMiddleware.RefreshHandler)
 
 	apiGroup := r.Group("/")
 
 	apiGroup.Use(authMiddleware.MiddlewareFunc())
 	{
-		accountController := new(account.Controller)
-		apiGroup.GET("/account", accountController.GetAccount)
+		accountResource := resource.NewAccountResource(di.Get().GetAccountService())
+		apiGroup.GET("/account", accountResource.GetAccount)
 
-		twoFactorController := new(twofactor.Controller)
-		apiGroup.GET("/2fa/activate", twoFactorController.GetTwoFactorSecret)
-		apiGroup.POST("/2fa/enable", twoFactorController.EnableTwoFactor)
-		apiGroup.POST("/2fa/disable", twoFactorController.DisableTwoFactor)
+		twoFactorResource := resource.NewTwoFactorResource(di.Get().GetAccountService(), di.Get().GetTwofactorService())
+		apiGroup.GET("/2fa/activate", twoFactorResource.GetTwoFactorSecret)
+		apiGroup.POST("/2fa/enable", twoFactorResource.EnableTwoFactor)
+		apiGroup.POST("/2fa/disable", twoFactorResource.DisableTwoFactor)
 
-		addressController := new(address.Controller)
-		apiGroup.GET("/address/:id", addressController.GetAddress)
-		apiGroup.DELETE("/address/:id", addressController.DeleteAddress)
-		apiGroup.GET("/address", addressController.GetAddresses)
-		apiGroup.POST("/address", addressController.CreateAddress)
+		addressResource := resource.NewAddressResource(di.Get().GetAddressService())
+		apiGroup.GET("/address/:id", addressResource.GetAddress)
+		apiGroup.DELETE("/address/:id", addressResource.DeleteAddress)
+		apiGroup.GET("/address", addressResource.GetAddresses)
+		apiGroup.POST("/address", addressResource.CreateAddress)
 
-		communityFundController := new(communityFund.Controller)
-		apiGroup.GET("/community-fund/proposal/vote", communityFundController.GetProposalVotes)
-		apiGroup.PUT("/community-fund/proposal/vote", communityFundController.UpdateProposalVotes)
-		apiGroup.GET("/community-fund/payment-request/vote", communityFundController.GetPaymentRequestVotes)
-		apiGroup.PUT("/community-fund/payment-request/vote", communityFundController.UpdatePaymentRequestVotes)
+		daoResource := resource.NewDaoResource(di.Get().GetDaoService())
+		apiGroup.GET("/community-fund/proposal/vote", daoResource.GetProposalVotes)
+		apiGroup.PUT("/community-fund/proposal/vote", daoResource.UpdateProposalVotes)
+		apiGroup.GET("/community-fund/payment-request/vote", daoResource.GetPaymentRequestVotes)
+		apiGroup.PUT("/community-fund/payment-request/vote", daoResource.UpdatePaymentRequestVotes)
+		//Legacy cfund endpoints
+		apiGroup.GET("/dao/proposal/vote", daoResource.GetProposalVotes)
+		apiGroup.PUT("/dao/proposal/vote", daoResource.UpdateProposalVotes)
+		apiGroup.GET("/dao/payment-request/vote", daoResource.GetPaymentRequestVotes)
+		apiGroup.PUT("/dao/payment-request/vote", daoResource.UpdatePaymentRequestVotes)
 
-		networkController := new(network.Controller)
-		apiGroup.GET("/network/stats", networkController.GetNetworkStats)
+		networkResource := resource.NewNetworkResource(di.Get().GetNetworkService())
+		apiGroup.GET("/network/stats", networkResource.GetNetworkStats)
 
-		stakingController := new(staking.Controller)
-		apiGroup.GET("/staking/rewards", stakingController.GetStakingRewardsForAccount)
+		stakingResource := resource.NewStakingResource(di.Get().GetStakingService())
+		apiGroup.GET("/staking/rewards", stakingResource.GetStakingRewardsForAccount)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
-		c.JSON(404, gin.H{"code": 404, "message": "Resource not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource Not Found"})
 	})
 
-	_ = r.Run(":" + config.Get().Server.Port)
-}
-
-func setReleaseMode() {
-	if config.Get().Debug == false {
-		log.Printf("Mode: %s", gin.ReleaseMode)
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		log.Printf("Mode: %s", gin.DebugMode)
-		gin.SetMode(gin.DebugMode)
-	}
+	_ = r.Run(fmt.Sprintf(":%d", config.Get().Server.Port))
 }

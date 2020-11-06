@@ -12,10 +12,13 @@ require (
 	github.com/gin-contrib/gzip v0.0.1
 	github.com/gin-gonic/gin v1.6.3
 	github.com/jinzhu/gorm v1.9.13
+	github.com/joho/godotenv v1.3.0
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/sarulabs/dingo/v3 v3.1.0
 	github.com/satori/go.uuid v1.2.0
+	github.com/sirupsen/logrus v1.6.0
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	gopkg.in/dgrijalva/jwt-go.v2 v2.7.0 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
