@@ -8,8 +8,8 @@ import (
 func Cors() gin.HandlerFunc {
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
-	config.AllowHeaders = append(config.AllowHeaders, "Network")
-	config.ExposeHeaders = append(config.AllowHeaders, "X-Network", "X-Pagination")
+	config.AllowHeaders = append(config.AllowHeaders, "Network", "Authorization")
+	config.ExposeHeaders = append(config.AllowHeaders, "X-Network", "X-Pagination", "Authorization")
 
 	return cors.New(config)
 }
