@@ -7,6 +7,7 @@ import (
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -87,6 +88,7 @@ func Authorizator(data interface{}, c *gin.Context) bool {
 }
 
 func Unauthorized(c *gin.Context, code int, message string) {
+	logrus.Errorf("Unauthorized: %s", message)
 	c.JSON(code, gin.H{
 		"code":    code,
 		"message": "Username, password or 2FA is incorrect",
