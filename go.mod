@@ -3,7 +3,7 @@ module github.com/NavPool/navpool-hq-api
 go 1.13
 
 require (
-	github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20190524154412-6693c72d5c6a
+	github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20201130161404-ade0990e08d8
 	github.com/appleboy/gin-jwt/v2 v2.6.3
 	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
@@ -13,6 +13,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/jinzhu/gorm v1.9.13
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/sarulabs/dingo/v3 v3.1.0
 	github.com/satori/go.uuid v1.2.0
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	gopkg.in/dgrijalva/jwt-go.v2 v2.7.0 // indirect

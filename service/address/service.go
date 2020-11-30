@@ -85,11 +85,11 @@ func GetAddresses(user account.User) (addresses []model.Address, err error) {
 	tx := db.Begin()
 	for i := range addresses {
 		for _, balance := range balances {
-			if addresses[i].StakingAddress == balance.Address {
-				if addresses[i].Balance != balance.ColdStakedBalance {
+			if addresses[i].StakingAddress == balance.Hash {
+				if addresses[i].Balance != float64(balance.Stakable) {
 					tx.Save(addresses[i])
 				}
-				addresses[i].Balance = balance.ColdStakedBalance
+				addresses[i].Balance = float64(balance.Stakable)
 			}
 		}
 	}
@@ -119,7 +119,7 @@ func GetAddress(id uuid.UUID, user account.User) (address model.Address, err err
 		return
 	}
 	if len(balances) == 1 {
-		address.Balance = balances[0].ColdStakedBalance
+		address.Balance = float64(balances[0].Stakable)
 	}
 
 	return
