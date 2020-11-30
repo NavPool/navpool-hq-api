@@ -1,6 +1,8 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20200622144107-a7d38497a5ce h1:Bfg8OIz5HVBeTr/du9Jnam1DeFbZjxeWzXzZtmotxkY=
 github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20200622144107-a7d38497a5ce/go.mod h1:WO1XdFZ8YElqRTqOVhY/PJAN8/yZRt6RPhZrtz7STzM=
+github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20201130161404-ade0990e08d8 h1:nhP/wEfC5vSw2a9IS/uX+q8vlJW+jkOTIj3SslPJ99Y=
+github.com/NavExplorer/navexplorer-sdk-go v0.0.0-20201130161404-ade0990e08d8/go.mod h1:WO1XdFZ8YElqRTqOVhY/PJAN8/yZRt6RPhZrtz7STzM=
 github.com/appleboy/gin-jwt/v2 v2.6.3 h1:aK4E3DjihWEBUTjEeRnGkA5nUkmwJPL1CPonMa2usRs=
 github.com/appleboy/gin-jwt/v2 v2.6.3/go.mod h1:MfPYA4ogzvOcVkRwAxT7quHOtQmVKDpTwxyUrC2DNw0=
 github.com/appleboy/gofight/v2 v2.1.2/go.mod h1:frW+U1QZEdDgixycTj4CygQ48yLTUhplt43+Wczp3rw=

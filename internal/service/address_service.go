@@ -81,8 +81,8 @@ func (s *AddressService) GetAddresses(user account.User) ([]*model.Address, erro
 
 	for i := range addresses {
 		for _, balance := range balances {
-			if addresses[i].StakingAddress == balance.Address {
-				addresses[i].Balance = balance.ColdStakedBalance
+			if addresses[i].StakingAddress == balance.Hash {
+				addresses[i].Balance = float64(balance.Stakable)
 			}
 		}
 	}
@@ -106,7 +106,7 @@ func (s *AddressService) GetAddress(id uuid.UUID, user account.User) (*model.Add
 		return nil, err
 	}
 	if len(balances) == 1 {
-		address.Balance = balances[0].ColdStakedBalance
+		address.Balance = float64(balances[0].Stakable)
 	}
 
 	return address, nil

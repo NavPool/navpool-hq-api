@@ -81,7 +81,7 @@ func Get() *Config {
 			Url: getString("EXPLORER_URL", "https://api.navexplorer.com"),
 		},
 		Pool: ApiConfig{
-			Url: getString("POOL_URL", "https://navpool.api:8080"),
+			Url: getString("POOL_URL", "http://api:8080"),
 		},
 		Sentry: Sentry{
 			Active: getBool("SENTRY_ACTIVE", false),
